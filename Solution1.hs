@@ -1,35 +1,28 @@
+-- Bruteforce everything!
+-- OBVIOUSLY this is only reasonable for dataset 0
+
 import System.Environment
-import Slide
-import Files
 import Data.List
 import Debug.Trace
-
-filenames :: [String]
-filenames = ["a_example", "b_lovely_landscapes"]
+import Strategies
+import Files
 
 main = do
   args <- getArgs
   let dataset = read $ args!!0
   photos <- readPhotos dataset
   traceM "Calculating slides"
-  let slides = allPossibleSlides photos
+  let slides = getSlides photos
   traceM $ "Calculating solution (slides: " <> show (length slides) <> ")"
   let solution = buildSlideshow slides
   putStrLn $ "Total score: " <> show (totalScore solution)
   writeSlideshow dataset solution
 
-
 -- Bruteforce solution: tries every combination
+getSlides :: [Photo] -> [Slide]
+getSlides = verticalPairedSlides
+
+-- Bruteforce solution: always searches for the best match
 buildSlideshow :: [Slide] -> Slideshow
 buildSlideshow = appendBestSlides []
-
--- Recursively appends the highest scoring slide to the slideshow
-appendBestSlides :: Slideshow -> [Slide] -> Slideshow
-appendBestSlides xs []      = xs
-appendBestSlides [] (y:ys)  = appendBestSlides [y] ys
-appendBestSlides (x:xs) ys  = trace ("Score: " <> show (transitionScore s x)) $ appendBestSlides (s:x:xs) (removeSlide s ys)
-  where
-    s = bestMatch x ys
-
-
 

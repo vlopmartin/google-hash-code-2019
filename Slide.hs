@@ -5,7 +5,6 @@ module Slide
 
 import Data.List
 import Photo
-import Debug.Trace
 
 type Score = Int
 data Slide = Single Photo | Double Photo Photo deriving (Show, Eq)
@@ -26,25 +25,28 @@ transitionScore s1 s2 = commonTags `min` s1Tags `min` s2Tags
     s2Tags = length (slideTags s2) - commonTags
 
 -- Total score of a slideshow
-totalScore :: Slideshow -> Int
+totalScore :: Slideshow -> Score
 totalScore xs = sum $ scores xs
   where
     scores xs = zipWith transitionScore xs (drop 1 xs)
-
--- Every possible horizontal and vertical slide out of a list of photos
-allPossibleSlides :: [Photo] -> [Slide]
-allPossibleSlides = horizontalSlides <> verticalSlides
-  where
-    horizontalSlides = map Single . filter (not . isVertical)
-    verticalSlides = pairsWithFirst . filter (isVertical)
-    pairsWithFirst [] = []
-    pairsWithFirst (p:ps) = zipWith Double (repeat p) ps ++ pairsWithFirst ps
 
 -- Out of a list of slides, the one that maximizes the transition score with the given slide
 bestMatch :: Slide -> [Slide] -> Slide
 bestMatch x = maximumBy (higherScore x)
   where
     higherScore s s1 s2 = compare (transitionScore s s1) (transitionScore s s2)
+
+-- Out of a list of slides, the first one that has a score higher than the given score with the given slide
+firstMatchHigherThan :: Score -> Slide -> [Slide] -> Slide
+firstMatchHigherThan n x = first ((> n) . transitionScore x)
+  where
+    first p xs
+     | null (filter p xs) = head xs
+     | otherwise          = head (filter p xs)
+
+-- Out of a list of slides, the first one that has nonzero score with the given slide
+firstNonzeroMatch :: Slide -> [Slide] -> Slide
+firstNonzeroMatch = firstMatchHigherThan 0
 
 -- Whether the two given slides have photos in common (only applies to double slides)
 haveCommonPhotos :: Slide -> Slide -> Bool
