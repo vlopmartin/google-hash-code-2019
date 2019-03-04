@@ -22,7 +22,7 @@ main = do
 getSlides :: [Photo] -> [Slide]
 getSlides = allPossibleSlides
 
--- Bruteforce solution: always searches for the best match
+-- Searches for the first nonzero scoring slide
 buildSlideshow :: [Slide] -> Slideshow
 buildSlideshow = appendFirstScoringSlides []
 
